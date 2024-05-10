@@ -58,6 +58,7 @@ var minimapcanvas = document.getElementById("minimap");
 var minimapctx = minimapcanvas.getContext("2d");
 var minimapscale = 3;
 var minimapfogdistance = 0;
+var previousMinimapFogDistance = 0;
 var fogdistance = document.getElementById("minimapfog").style;
 
 
@@ -131,6 +132,9 @@ function showDistance(distance, height) {
   if (distance > minimapfogdistance) {
     fogdistance.width = 800 - Math.round(distance + 15) * minimapscale + "px";
     minimapfogdistance = distance;
+
+    // Update the previousMinimapFogDistance to retain the cleared fog in the next round
+    previousMinimapFogDistance = minimapfogdistance;
   }
 }
 
@@ -260,8 +264,6 @@ function cw_drawMiniMap() {
   var floorTiles = currentRunner.scene.floorTiles;
   var last_tile = null;
   var tile_position = new b2Vec2(-5, 0);
-  minimapfogdistance = 0;
-  fogdistance.width = "800px";
   minimapcanvas.width = minimapcanvas.width;
   minimapctx.strokeStyle = "#3F72AF";
   minimapctx.beginPath();
@@ -274,6 +276,18 @@ function cw_drawMiniMap() {
     minimapctx.lineTo((tile_position.x + 5) * minimapscale, (-tile_position.y + 35) * minimapscale);
   }
   minimapctx.stroke();
+
+  // draw the furthest distance flag
+  var furthestDistanceX = world_def.furthestDistance;
+  minimapctx.strokeStyle = "rgba(255, 87, 87, 0.5)";
+  minimapctx.beginPath();
+  minimapctx.moveTo((furthestDistanceX + 5) * minimapscale, 0);
+  minimapctx.lineTo((furthestDistanceX + 5) * minimapscale, minimapcanvas.height);
+  minimapctx.stroke();
+
+  // Update the fog distance based on the previous round
+  minimapfogdistance = previousMinimapFogDistance;
+  fogdistance.width = 800 - Math.round(previousMinimapFogDistance + 15) * minimapscale + "px";
 }
 
 /* ==== END Drawing ======================================================== */
@@ -459,6 +473,9 @@ function cw_resetWorld() {
   resetCarUI();
   setupCarUI()
   cw_drawMiniMap();
+
+  minimapfogdistance = 0;
+  previousMinimapFogDistance = 0;
 
   cw_startSimulation();
 }
