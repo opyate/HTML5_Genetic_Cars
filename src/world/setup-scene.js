@@ -16,6 +16,9 @@ world_def = {
 module.exports = function(world_def){
 
   var world = new b2World(world_def.gravity, world_def.doSleep);
+
+  var furthestDistanceFlag = cw_createfurthestDistanceFlag(world, world_def.furthestDistance);
+
   var floorTiles = cw_createFloor(
     world,
     world_def.floorseed,
@@ -35,8 +38,21 @@ module.exports = function(world_def){
   return {
     world: world,
     floorTiles: floorTiles,
-    finishLine: tile_position.x
+    finishLine: tile_position.x,
+    furthestDistanceFlag: furthestDistanceFlag,
   };
+}
+
+function cw_createfurthestDistanceFlag(world, furthestDistance) {
+  var body_def = new b2BodyDef();
+  body_def.position.Set(furthestDistance, 0);
+  var body = world.CreateBody(body_def);
+  var fix_def = new b2FixtureDef();
+  fix_def.shape = new b2PolygonShape();
+  fix_def.isSensor = true;
+  fix_def.shape.SetAsBox(0.1, 20);
+  body.CreateFixture(fix_def);
+  return body;
 }
 
 function cw_createFloor(world, floorseed, dimensions, maxFloorTiles, mutable_floor) {

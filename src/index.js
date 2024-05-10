@@ -14,6 +14,7 @@ var graph_fns = require("./draw/plot-graphs.js");
 var plot_graphs = graph_fns.plotGraphs;
 var cw_clearGraphics = graph_fns.clearGraphics;
 var cw_drawFloor = require("./draw/draw-floor.js");
+var cw_drawFurthestDistanceFlag = require("./draw/draw-furthest-distance-flag.js");
 
 var ghost_draw_frame = ghost_fns.ghost_draw_frame;
 var ghost_create_ghost = ghost_fns.ghost_create_ghost;
@@ -92,7 +93,8 @@ var world_def = {
   box2dfps: box2dfps,
   motorSpeed: 20,
   max_car_health: max_car_health,
-  schema: generationConfig.constants.schema
+  schema: generationConfig.constants.schema,
+  furthestDistance: 0,
 }
 
 var cw_deadCars;
@@ -173,6 +175,7 @@ function cw_drawScreen() {
   ctx.translate(200 - (camera_x * zoom), 200 + (camera_y * zoom));
   ctx.scale(zoom, -zoom);
   cw_drawFloor(ctx, camera, floorTiles);
+  cw_drawFurthestDistanceFlag(ctx, camera, currentRunner.scene.furthestDistanceFlag);
   ghost_draw_frame(ctx, ghost, camera);
   cw_drawCars();
   ctx.restore();
@@ -404,6 +407,11 @@ function cw_newRound(results) {
     // RE-ENABLE GHOST
     ghost_reset_ghost(ghost);
   }
+
+  // set high score
+  var thisFurthestDistance = Math.max.apply(Math, results.map(function(o){return o.score.x;}));
+  world_def.furthestDistance = Math.max(thisFurthestDistance, world_def.furthestDistance);
+
   currentRunner = worldRun(world_def, generationState.generation, uiListeners);
   setupCarUI();
   cw_drawMiniMap();
@@ -437,6 +445,7 @@ function cw_resetWorld() {
   doDraw = true;
   cw_stopSimulation();
   world_def.floorseed = document.getElementById("newseed").value;
+  world_def.furthestDistance = 0;
   cw_clearPopulationWorld();
   cw_resetPopulationUI();
 
